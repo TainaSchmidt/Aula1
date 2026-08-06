@@ -1,12 +1,243 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Teste add doc</title>
+    <title>Validador de CPF</title>
+    <style>
+        :root {
+            --bg-color: #f4f6f9;
+            --card-bg: #ffffff;
+            --text-color: #333333;
+            --primary-color: #2563eb;
+            --primary-hover: #1d4ed8;
+            --border-color: #d1d5db;
+            --success-color: #16a34a;
+            --success-bg: #f0fdf4;
+            --success-border: #bbf7d0;
+            --error-color: #dc2626;
+            --error-bg: #fef2f2;
+            --error-border: #fecaca;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+            padding: 32px;
+            width: 100%;
+            max-width: 420px;
+        }
+
+        .card h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #1e293b;
+            text-align: center;
+        }
+
+        .card p.subtitle {
+            font-size: 0.875rem;
+            color: #64748b;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #475569;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            font-size: 1rem;
+            border: 1.5px solid var(--border-color);
+            border-radius: 8px;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .form-group input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+        }
+
+        .btn-validate {
+            width: 100%;
+            padding: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #ffffff;
+            background-color: var(--primary-color);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        .btn-validate:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .btn-validate:active {
+            transform: scale(0.99);
+        }
+
+        .result-box {
+            margin-top: 20px;
+            padding: 14px 16px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            display: none;
+            text-align: center;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .result-box.valid {
+            display: block;
+            background-color: var(--success-bg);
+            color: var(--success-color);
+            border: 1px solid var(--success-border);
+        }
+
+        .result-box.invalid {
+            display: block;
+            background-color: var(--error-bg);
+            color: var(--error-color);
+            border: 1px solid var(--error-border);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
 </head>
 <body>
-    <h1>Index HTML</h1>
-    <p>Teste adicionando novo documento</p>
+
+    <div class="card">
+        <h1>Validador de CPF</h1>
+        <p class="subtitle">Insira o número do CPF para verificar sua validade</p>
+
+        <form id="cpfForm" onsubmit="validarFormulario(event)">
+            <div class="form-group">
+                <label for="cpfInput">CPF</label>
+                <input 
+                    type="text" 
+                    id="cpfInput" 
+                    placeholder="000.000.000-00" 
+                    maxlength="14"
+                    autocomplete="off"
+                    oninput="mascaraCPF(this)"
+                />
+            </div>
+
+            <button type="submit" class="btn-validate">Validar CPF</button>
+        </form>
+
+        <div id="resultBox" class="result-box"></div>
+    </div>
+
+    <script>
+        // Formata a entrada com a máscara de CPF em tempo real
+        function mascaraCPF(input) {
+            let value = input.value.replace(/\D/g, '');
+            if (value.length > 11) value = value.slice(0, 11);
+
+            value = value.replace(/(\d{3})(\d)/, '$1.$2');
+            value = value.replace(/(\d{3})(\d)/, '$1.$2');
+            value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+
+            input.value = value;
+        }
+
+        // Algoritmo oficial de validação de CPF
+        function validarCPF(cpf) {
+            // Remove caracteres não numéricos
+            const limpo = cpf.replace(/\D/g, '');
+
+            // Verifica se possui exatamente 11 dígitos
+            if (limpo.length !== 11) return false;
+
+            // Elimina CPFs com todos os dígitos iguais (ex: 111.111.111-11)
+            if (/^(\d)\1{10}$/.test(limpo)) return false;
+
+            // Validação do 1º dígito verificador
+            let soma = 0;
+            for (let i = 0; i < 9; i++) {
+                soma += parseInt(limpo.charAt(i)) * (10 - i);
+            }
+            let resto = (soma * 10) % 11;
+            if (resto === 10 || resto === 11) resto = 0;
+            if (resto !== parseInt(limpo.charAt(9))) return false;
+
+            // Validação do 2º dígito verificador
+            soma = 0;
+            for (let i = 0; i < 10; i++) {
+                soma += parseInt(limpo.charAt(i)) * (11 - i);
+            }
+            resto = (soma * 10) % 11;
+            if (resto === 10 || resto === 11) resto = 0;
+            if (resto !== parseInt(limpo.charAt(10))) return false;
+
+            return true;
+        }
+
+        // Lógica acionada ao submeter o formulário
+        function validarFormulario(event) {
+            event.preventDefault();
+
+            const input = document.getElementById('cpfInput');
+            const resultBox = document.getElementById('resultBox');
+            const cpfVal = input.value.trim();
+
+            if (!cpfVal) {
+                resultBox.className = 'result-box invalid';
+                resultBox.innerText = 'Por favor, digite um CPF.';
+                return;
+            }
+
+            const eValido = validarCPF(cpfVal);
+
+            if (eValido) {
+                resultBox.className = 'result-box valid';
+                resultBox.innerText = '✓ CPF VÁLIDO';
+            } else {
+                resultBox.className = 'result-box invalid';
+                resultBox.innerText = '✕ CPF INVÁLIDO';
+            }
+        }
+    </script>
 </body>
 </html>
